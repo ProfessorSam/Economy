@@ -2,6 +2,7 @@ package me.scruffyboy13.Economy.commands;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -12,7 +13,7 @@ import me.scruffyboy13.Economy.EconomyMain;
 import me.scruffyboy13.Economy.utils.StringUtils;
 
 public class PayCommand implements org.bukkit.command.CommandExecutor {
-
+	int taskID;
 	@SuppressWarnings("deprecation")
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String lebel, String[] args) {
@@ -76,12 +77,14 @@ public class PayCommand implements org.bukkit.command.CommandExecutor {
 			StringUtils.sendConfigMessage(player, "messages.pay.paid", ImmutableMap.of(
 					"%player%", other.getName(), 
 					"%amount%", EconomyMain.format(amount)));
+			new MoneySound(player);
 			
 			EconomyMain.getEco().deposit(other.getUniqueId(), amount);
 			if (other instanceof Player) {
 				StringUtils.sendConfigMessage((Player) other, "messages.pay.received", ImmutableMap.of(
 						"%player%", player.getName(), 
 						"%amount%", EconomyMain.format(amount)));
+				new MoneySound((Player) other);
 			}
 			
 			return true;
@@ -107,3 +110,27 @@ public class PayCommand implements org.bukkit.command.CommandExecutor {
 	}
 	
 }
+class MoneySound{
+	Player player;
+	int taskID;
+	public MoneySound(Player player) {
+		taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(EconomyMain.getInstance(), new Runnable() {
+			
+			int i = 1;
+			@Override
+			public void run() {
+				if(i == 25) {
+					Bukkit.getScheduler().cancelTask(taskID);
+				}
+				player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 2, 1);
+				i++;
+			}
+		}, 0, 1);
+	}
+}
+
+
+
+
+
+
